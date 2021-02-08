@@ -8,7 +8,7 @@ repositories {
 
 dependencies {
     // is required for compilation but will not be added to the resulting fat jar
-    implementation 'com.corezoid.gitcall:runner:0.1.3'
+    implementation 'com.corezoid.gitcall:runner:0.1.4'
 
     // add your dependencies here
     // they are will be added to the resulting fat jar (usercode.jar)
