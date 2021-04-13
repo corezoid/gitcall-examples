@@ -1,3 +1,5 @@
+// build command: npm install pq
+
 const { Client } = require('pg');
 
 module.exports = (data) => {
