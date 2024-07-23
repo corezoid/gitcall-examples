@@ -1,0 +1,9 @@
+{
+  "name": "gitcall-example",
+  "version": "1.0.0",
+  "description": "gitcall example",
+  "dependencies": {
+    "pngjs": "^7.0.0",
+    "jsqr": "^1.4.0"
+  }
+}
