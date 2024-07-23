@@ -3,7 +3,11 @@
 const { Client } = require('pg');
 
 module.exports = (data) => {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    if(!data.url){
+      reject("url is empty");
+      return;
+    }
     const client = new Client({
       connectionString: data.url,
     });
