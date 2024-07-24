@@ -1,7 +1,8 @@
 # Corezoid Java Example
 
 The project requires custom build with import dependencies.
-To do so specify build script in Corezoit Gitcall node:
+To do so specify build script in Corezoit Gitcall node.
+#### Build command:
 ```
 ./gradlew build
 ```
