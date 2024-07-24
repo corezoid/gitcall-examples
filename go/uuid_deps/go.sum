@@ -1,0 +1,4 @@
+github.com/corezoid/gitcall-go-runner v1.0.0 h1:QnORvJ/uyxb45h8ozBl7JtW4Kl6kevqxD060CmeVCM8=
+github.com/corezoid/gitcall-go-runner v1.0.0/go.mod h1:MjHVnSbq9/BdVi7SXf2opnmIKPHO7T8IkRmLX9RU7tU=
+github.com/google/uuid v1.6.0 h1:NIvaJDMOsjHA8n1jAhLSgzrAzy1Hgr+hNrb57e+94F0=
+github.com/google/uuid v1.6.0/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
