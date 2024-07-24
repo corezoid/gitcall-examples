@@ -1,0 +1,7 @@
+{
+    "name": "gitcall/example",
+    "type": "project",
+    "require": {
+        "guzzlehttp/guzzle": "^7.2"
+    }
+}
