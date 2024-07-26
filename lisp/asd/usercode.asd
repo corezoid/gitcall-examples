@@ -8,6 +8,7 @@
   :version "0.0.1"
   :description "gitcall-example"
   :depends-on (:cl-mustache)
+  :pathname "src"
   :components (
     (:file "usercode" :depends-on ("userutil"))
     (:file "userutil")))
