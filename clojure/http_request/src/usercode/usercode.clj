@@ -2,4 +2,4 @@
     (:require [clj-http.client :as client]))
 
 (defn handle [data]
-    (assoc data :reply (client/get "https://reqres.in/api/users?page=1")))
+    (assoc data :reply (:body (client/get "https://reqres.in/api/users?page=1"))))
