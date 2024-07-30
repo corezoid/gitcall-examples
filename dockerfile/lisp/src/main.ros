@@ -1,0 +1,84 @@
+#!/bin/sh
+#|-*- mode:lisp -*-|#
+#|
+exec ros -Q -- $0 "$@"
+|#
+
+(ql:quickload '(:woo :jonathan) :silent t)
+
+
+;; usercode
+(defun handle (data)
+  ;; write your code here
+  (setf (gethash "lisp" data) "Hello, world!") data)
+
+
+;; response ok
+(defun resp-ok (id data-res)
+  (jonathan:with-output-to-string*
+    (jonathan:with-object
+      (jonathan:write-key-value "jsonrpc" "2.0")
+      (jonathan:write-key-value "id" id)
+      (jonathan:write-key-value "result" data-res)))
+)
+
+;; response error
+(defun resp-error (id e)
+  (jonathan:with-output-to-string*
+    (jonathan:with-object
+      (jonathan:write-key-value "jsonrpc" "2.0")
+      (jonathan:write-key-value "id" id)
+      (jonathan:write-key-value "error" 
+      (jonathan:with-object
+        (jonathan:write-key-value "code" 1)
+        (jonathan:write-key-value "message" e)))))
+  )
+
+
+;; run request
+(defun run-request (message)
+  (let* (
+      (json-msg (jonathan:parse message :as :hash-table))
+      (id (gethash "id" json-msg))
+      (params (gethash "params" json-msg))
+    )
+    (handler-case
+        (resp-ok id (handle params))
+        (t (e)
+          (resp-error id (format NIL "~a" e))))
+  )
+)
+
+;; handle request
+(defvar *handler*
+  (lambda (env)
+    (let ((body
+            (make-array (getf env :content-length) :element-type '(unsigned-byte 8))))
+      (read-sequence body (getf env :raw-body))
+      (let ((resp (run-request (flex:octets-to-string body)))) 
+        `(200 
+          (:content-type "application/json; charset=utf-8") 
+          (,resp))
+    ))))
+
+(defun logger (text &rest args)
+  "Simple wrapper around format func to simplify logging"
+  (apply 'format (append (list t (concatenate 'string text "~%")) args)))
+
+
+;; parse GITCALL_PORT
+(defun get-port (uri)
+  (if (eq uri nil)
+    (progn (logger "GITCALL_PORT env is required but not set") (sb-ext:quit))
+    (parse-integer uri)))
+
+;; start server
+(defun main (&rest argv)  
+  (declare (ignorable argv))
+  (let ((port (get-port (sb-ext:posix-getenv "GITCALL_PORT")))) 
+    (logger "Listening on http://0.0.0.0:~A" port)
+    (woo:run
+      *handler*
+      :debug nil
+      :port port
+      :address "0.0.0.0")))
