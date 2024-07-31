@@ -8,6 +8,12 @@ if (!port) {
 
 process.on('SIGTERM', () => process.exit(1));
 process.on('SIGINT', () => process.exit(1));
+process.on('uncaughtException', function (err) {
+    console.error(err, 'uncaughtException thrown');
+});
+process.on('unhandledRejection', function (reason, p) {
+    console.error(reason, 'unhandledRejection at Promise', p);
+});
 
 const server = http.createServer((request, response) => {
     if (request.method === 'POST' && request.url === '/') {
@@ -24,7 +30,7 @@ const server = http.createServer((request, response) => {
     }
 });
 
-const handler = (body, response) => {
+const handler = async (body, response) => {
     const req = JSON.parse(body);
     const jsonrpc = req.jsonrpc;
     const id = req.id;
@@ -33,7 +39,10 @@ const handler = (body, response) => {
         if (typeof params !== 'object') {
             throw Error('expected request params is object');
         }
-        const result = usercode(id, params);
+        let result = usercode(params);
+        if (result instanceof Promise) {
+            result = await result;
+        }
         response.end(JSON.stringify({
             jsonrpc: jsonrpc,
             id: id,
@@ -52,7 +61,7 @@ const handler = (body, response) => {
 
 };
 
-const usercode = (taskId, data) => {
+const usercode = (data) => {
     data["js"] = "Hello, world!"
     return data
 };
