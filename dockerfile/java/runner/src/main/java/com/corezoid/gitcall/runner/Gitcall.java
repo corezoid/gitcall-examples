@@ -28,15 +28,19 @@ public class Gitcall {
             try {
                 var request = gson.fromJson(strBody, JsonRpcRequest.class);
                 response.id = request.id;
+                System.out.println(String.format("[req] time=%s id=%s", System.currentTimeMillis(), response.id));
                 var data = Gitcall.handle(request.params);
                 response.result = data;
+                System.out.println(String.format("[res] time=%s id=%s", System.currentTimeMillis(), response.id));
             } catch (Exception e) {
-                response.error = new JsonRpcResponse.JsonRpcError(1, e.toString());
+                String err = e.toString();
+                response.error = new JsonRpcResponse.JsonRpcError(1, err);
+                System.out.println(String.format("[res] time=%s id=%s error=%s", System.currentTimeMillis(), response.id, err));
             }
-            var jsonRessp = gson.toJson(response).getBytes();
-            exchange.sendResponseHeaders(200, jsonRessp.length);
+            var jsonResp = gson.toJson(response).getBytes();
+            exchange.sendResponseHeaders(200, jsonResp.length);
             try (var os = exchange.getResponseBody()) {
-                os.write(jsonRessp);
+                os.write(jsonResp);
             }
         });
         server.start();
