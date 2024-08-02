@@ -8,6 +8,7 @@ import (
 	"log/slog"
 	"net/http"
 	"os"
+	"time"
 )
 
 type request struct {
@@ -55,6 +56,8 @@ func handler(w http.ResponseWriter, r *http.Request) {
 		send_err(w, "", 1, err.Error())
 		return
 	}
+	fmt.Printf("[req] time=%d id=%s\n", time.Now().UTC().UnixMilli(), req.ID)
+
 	result, err := usercode(req.Params)
 	if err != nil {
 		send_err(w, req.ID, 1, err.Error())
@@ -71,6 +74,7 @@ func usercode(data map[string]any) (map[string]any, error) {
 }
 
 func send_ok(w http.ResponseWriter, id string, result map[string]any) {
+	fmt.Printf("[res] time=%d id=%s\n", time.Now().UTC().UnixMilli(), id)
 	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	b, err := json.Marshal(response{
@@ -85,6 +89,7 @@ func send_ok(w http.ResponseWriter, id string, result map[string]any) {
 }
 
 func send_err(w http.ResponseWriter, id string, code int, message string) {
+	fmt.Printf("[res] time=%d id=%s error=%s\n", time.Now().UTC().UnixMilli(), id, message)
 	w.WriteHeader(200)
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
 	b, err := json.Marshal(response{
@@ -104,19 +109,6 @@ func send_err(w http.ResponseWriter, id string, code int, message string) {
 func check_panic(w http.ResponseWriter) {
 	if r := recover(); r != nil {
 		slog.Error("logPanic", "r", r)
-		w.WriteHeader(200)
-		w.Header().Set("Content-Type", "application/json; charset=utf-8")
-		b, err := json.Marshal(response{
-			Jsonrpc: "2.0",
-			Error: &respError{
-				Code:    2,
-				Message: fmt.Sprintf("%v", r),
-			},
-		})
-		if err == nil {
-			// nolint
-			w.Write(b)
-		}
+		send_err(w, "", 1, fmt.Sprintf("%v", r))
 	}
-
 }
