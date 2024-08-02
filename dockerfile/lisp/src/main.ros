@@ -4,7 +4,7 @@
 exec ros -Q -- $0 "$@"
 |#
 
-(ql:quickload '(:woo :jonathan) :silent t)
+(ql:quickload '(:woo :jonathan :local-time) :silent t)
 
 
 ;; usercode
