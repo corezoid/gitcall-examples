@@ -38,7 +38,7 @@ $server = new SocketHttpServer(
 );
 
 $server->expose("0.0.0.0:" . $uri);
-$server->start(new ClosureRequestHandler(function (Request $request) use ($html): Response {
+$server->start(new ClosureRequestHandler(function (Request $request) use ($logger): Response {
     $body = $request->getBody()->buffer();
     $data = json_decode($body, true);
 
@@ -46,8 +46,11 @@ $server->start(new ClosureRequestHandler(function (Request $request) use ($html)
     $id =  $data["id"];
     $params =  $data["params"];
 
+    $logger->info(sprintf("[req] id=%s", $id));
+
     try {
         $reslut = handle($id, $params);
+        $logger->info(sprintf("[res] id=%s", $id));
         return new Response(
             status: HttpStatus::OK,
             headers: ["content-type" => "application/json; charset=utf-8"],
@@ -58,6 +61,7 @@ $server->start(new ClosureRequestHandler(function (Request $request) use ($html)
             ]),
         );
     } catch (\Throwable $e) {
+        $logger->info(sprintf("[res] id=%s error=%s", $id, $e->getMessage()));
         return new Response(
             status: HttpStatus::OK,
             headers: ["content-type" => "application/json; charset=utf-8"],
