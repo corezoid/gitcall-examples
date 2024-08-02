@@ -43,7 +43,7 @@ func main() {
 }
 
 func handler(w http.ResponseWriter, r *http.Request) {
-	defer check_panic(w)
+	defer check_panic(w, r)
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -106,9 +106,9 @@ func send_err(w http.ResponseWriter, id string, code int, message string) {
 	}
 }
 
-func check_panic(w http.ResponseWriter) {
+func check_panic(w http.ResponseWriter, req *http.Request) {
 	if r := recover(); r != nil {
 		slog.Error("logPanic", "r", r)
-		send_err(w, "", 1, fmt.Sprintf("%v", r))
+		send_err(w, req.Header.Get("x-request-id"), 1, fmt.Sprintf("%v", r))
 	}
 }
