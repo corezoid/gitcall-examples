@@ -12,9 +12,14 @@ exec ros -Q -- $0 "$@"
   ;; write your code here
   (setf (gethash "lisp" data) "Hello, world!") data)
 
+;; get time in milleseconds
+(defun time-ms ()
+  (let ((tm (local-time:now))) 
+      (+ (* 1000 (local-time:timestamp-to-unix tm)) (local-time:timestamp-millisecond tm))))
 
 ;; response ok
 (defun resp-ok (id data-res)
+  (logger "[res] time=~A id=~A" (time-ms) id)
   (jonathan:with-output-to-string*
     (jonathan:with-object
       (jonathan:write-key-value "jsonrpc" "2.0")
@@ -24,6 +29,7 @@ exec ros -Q -- $0 "$@"
 
 ;; response error
 (defun resp-error (id e)
+  (logger "[res] time=~A id=~A error=~A" (time-ms) id e)
   (jonathan:with-output-to-string*
     (jonathan:with-object
       (jonathan:write-key-value "jsonrpc" "2.0")
@@ -42,6 +48,7 @@ exec ros -Q -- $0 "$@"
       (id (gethash "id" json-msg))
       (params (gethash "params" json-msg))
     )
+    (logger "[req] time=~A id=~A" (time-ms) id)
     (handler-case
         (resp-ok id (handle params))
         (t (e)
