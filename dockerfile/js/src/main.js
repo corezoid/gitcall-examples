@@ -9,10 +9,10 @@ if (!port) {
 process.on('SIGTERM', () => process.exit(1));
 process.on('SIGINT', () => process.exit(1));
 process.on('uncaughtException', function (err) {
-    console.error(err, 'uncaughtException thrown');
+    console.error(`[uncaughtException] time=${(new Date()).getTime()} error=${err}`);
 });
 process.on('unhandledRejection', function (reason, p) {
-    console.error(reason, 'unhandledRejection at Promise', p);
+    console.error(`[unhandledRejection] time=${(new Date()).getTime()} reason=${reason} promise=`, p);
 });
 
 const server = http.createServer((request, response) => {
@@ -35,6 +35,7 @@ const handler = async (body, response) => {
     const jsonrpc = req.jsonrpc;
     const id = req.id;
     const params = req.params;
+    console.log(`[req] time=${(new Date()).getTime()} id=${id}`);
     try {
         if (typeof params !== 'object') {
             throw Error('expected request params is object');
@@ -48,6 +49,7 @@ const handler = async (body, response) => {
             id: id,
             result: result,
         }));
+        console.log(`[res] time=${(new Date()).getTime()} id=${id}`);
     } catch (e) {
         response.end(JSON.stringify({
             jsonrpc: jsonrpc,
@@ -57,6 +59,7 @@ const handler = async (body, response) => {
                 message: e.toString(),
             },
         }));
+        console.log(`[res] time=${(new Date()).getTime()} id=${id} error=${e.toString()}`);
     }
 
 };
@@ -66,5 +69,5 @@ const usercode = (data) => {
     return data
 };
 
-console.log('Listening on 0.0.0.0:' + port);
+console.log('listening on 0.0.0.0:' + port);
 server.listen(port);
