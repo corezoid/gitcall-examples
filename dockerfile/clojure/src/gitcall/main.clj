@@ -17,12 +17,15 @@
 (defn request [req]
    (let [msg (json/read (clojure.java.io/reader (:body req) :encoding "UTF-8") :key-fn keyword)]
     (let [jsonrpc (:jsonrpc msg) id (:id msg) params (:params msg)]
+      (println (format "[req] time=%d id=%s" (inst-ms (java.util.Date.)) id))
       (try
          (let [data (handle params)]
+           (println (format "[res] time=%d id=%s" (inst-ms (java.util.Date.)) id))
            {:status  200
             :headers {"Content-Type" "application/json"}
             :body (json/write-str {:jsonrpc jsonrpc :id id, :result data} )})
          (catch Exception e
+           (println (format "[res] time=%d id=%s error=%s" (inst-ms (java.util.Date.)) id (ex-message e)))
            {:status  200
             :headers {"Content-Type" "application/json"}
             :body (json/write-str {:jsonrpc jsonrpc :id id, :error {:code 1 :message (ex-message e)}})})))))
