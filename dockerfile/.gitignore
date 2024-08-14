@@ -1,4 +1,5 @@
 .lsp/
 .clj-kondo/
 .vscode
+.build
 cpp/
