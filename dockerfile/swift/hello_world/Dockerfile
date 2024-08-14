@@ -80,4 +80,5 @@ ENV SWIFT_BACKTRACE=enable=yes,sanitize=yes,threads=all,images=all,interactive=n
 # Ensure all further commands run as the usercode user
 USER usercode
 
+ENV LOG_LEVEL=info
 ENTRYPOINT /app/App serve --env production --hostname "0.0.0.0" --port "$GITCALL_PORT"
