@@ -1,4 +1,5 @@
-const http = require('node:http');
+import * as http from 'http';
+import usercode from './usercode.js';
 
 const port = process.env.GITCALL_PORT;
 if (!port) {
@@ -62,11 +63,6 @@ const handler = async (body, response) => {
         console.log(`[res] time=${(new Date()).getTime()} id=${id} error=${e.toString()}`);
     }
 
-};
-
-const usercode = (data) => {
-    data["js"] = "Hello, world!"
-    return data
 };
 
 console.log('listening on 0.0.0.0:' + port);

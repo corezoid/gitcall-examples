@@ -1,0 +1,7 @@
+{
+  "name": "gitcall-example",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "gitcall example",
+  "dependencies": {}
+}
