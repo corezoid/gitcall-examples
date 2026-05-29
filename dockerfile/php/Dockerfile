@@ -1,4 +1,4 @@
-FROM php:8.3-alpine as builder
+FROM php:8.4-alpine as builder
 
 RUN docker-php-ext-install pcntl
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
