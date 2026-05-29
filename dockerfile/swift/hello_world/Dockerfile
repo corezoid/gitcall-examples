@@ -1,84 +1,76 @@
 # ================================
-# Build image
+# Build stage
 # ================================
-FROM swift:5.10-noble AS build
+FROM swift:6.3-noble AS build
 
-# Install OS updates
-RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
-    && apt-get -q update \
-    && apt-get -q dist-upgrade -y \
-    && apt-get install -y libjemalloc-dev
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Set up a build area
+# System dependencies
+RUN apt-get update && apt-get install -y \
+    libjemalloc-dev \
+ && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /build
 
-# First just resolve dependencies.
-# This creates a cached layer that can be reused
-# as long as your Package.swift/Package.resolved
-# files do not change.
-COPY ./Package.* ./
-RUN swift package resolve \
-        $([ -f ./Package.resolved ] && echo "--force-resolved-versions" || true)
+# Cache dependencies
+COPY Package.* ./
+RUN swift package resolve
 
-# Copy entire repo into container
+# Copy source
 COPY . .
 
-# Build everything, with optimizations, with static linking, and using jemalloc
-# N.B.: The static version of jemalloc is incompatible with the static Swift runtime.
-RUN swift build -c release \
-                --static-swift-stdlib \
-                -Xlinker -ljemalloc
+# Build release
+RUN swift build -c release --disable-sandbox
 
-# Switch to the staging area
+# ================================
+# Staging stage
+# ================================
 WORKDIR /staging
 
-# Copy main executable to staging area
-RUN cp "$(swift build --package-path /build -c release --show-bin-path)/App" ./
+# Copy ONLY executable (not entire .build tree)
+RUN BIN_PATH="$(swift build -c release --show-bin-path --package-path /build)" && \
+    EXECUTABLE=$(ls "$BIN_PATH" | grep -v -E '\.d|\.swift|\.build' | head -n 1) && \
+    cp "$BIN_PATH/$EXECUTABLE" ./App
 
-# Copy static swift backtracer binary to staging area
-RUN cp "/usr/libexec/swift/linux/swift-backtrace-static" ./
+# Swift backtrace helper
+RUN cp /usr/libexec/swift/linux/swift-backtrace-static ./ 2>/dev/null || true
 
-# Copy resources bundled by SPM to staging area
-RUN find -L "$(swift build --package-path /build -c release --show-bin-path)/" -regex '.*\.resources$' -exec cp -Ra {} ./ \;
+# SPM resources
+RUN find "$(swift build -c release --show-bin-path --package-path /build)" \
+    -name "*.resources" -exec cp -Ra {} ./ \; || true
 
-# Copy any resources from the public directory and views directory if the directories exist
-# Ensure that by default, neither the directory nor any of its contents are writable.
+# Optional Public/Resources
 RUN [ -d /build/Public ] && { mv /build/Public ./Public && chmod -R a-w ./Public; } || true
 RUN [ -d /build/Resources ] && { mv /build/Resources ./Resources && chmod -R a-w ./Resources; } || true
 
+
 # ================================
-# Run image
+# Runtime stage
 # ================================
 FROM debian:trixie-slim
 
-# Make sure all system packages are up to date, and install only essential packages.
-RUN export DEBIAN_FRONTEND=noninteractive DEBCONF_NONINTERACTIVE_SEEN=true \
-    && apt-get -q update \
-    && apt-get -q dist-upgrade -y \
-    && apt-get -q install -y \
-      libjemalloc2 \
-      ca-certificates \
-      tzdata \
-# If your app or its dependencies import FoundationNetworking, also install `libcurl4`.
-      # libcurl4 \
-# If your app or its dependencies import FoundationXML, also install `libxml2`.
-      # libxml2 \
-    && rm -r /var/lib/apt/lists/*
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Create a usercode user and group with /app as its home directory
-RUN useradd --user-group --create-home --system --skel /dev/null --home-dir /usercode usercode
+RUN apt-get update && apt-get install -y \
+    ca-certificates \
+    tzdata \
+    libjemalloc2 \
+ && rm -rf /var/lib/apt/lists/*
 
-# Switch to the new home directory
+# Swift runtime
+COPY --from=build /usr/lib/swift/linux /usr/lib/swift/linux
+
+RUN useradd --user-group --create-home --system \
+    --home-dir /usercode usercode
+
 WORKDIR /app
 
-# Copy built executable and any staged resources from builder
 COPY --from=build /staging /app
 
-# Provide configuration needed by the built-in crash reporter and some sensible default behaviors.
 ENV SWIFT_BACKTRACE=enable=yes,sanitize=yes,threads=all,images=all,interactive=no,swift-backtrace=./swift-backtrace-static
 
-# Ensure all further commands run as the usercode user
+ENV LOG_LEVEL=info
+
 USER usercode
 
-ENV LOG_LEVEL=info
-ENTRYPOINT /app/App serve --env production --hostname "0.0.0.0" --port "$GITCALL_PORT"
+CMD ["sh", "-c", "/app/App serve --env production --hostname 0.0.0.0 --port ${GITCALL_PORT}"]

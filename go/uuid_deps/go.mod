@@ -1,6 +1,6 @@
 module uuid_deps
 
-go 1.22.5
+go 1.26
 
 require (
 	github.com/corezoid/gitcall-go-runner v1.0.0

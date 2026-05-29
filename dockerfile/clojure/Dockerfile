@@ -1,4 +1,4 @@
-FROM clojure:temurin-22-lein-bookworm-slim
+FROM clojure:temurin-26-lein-bookworm-slim
 
 WORKDIR /app
 

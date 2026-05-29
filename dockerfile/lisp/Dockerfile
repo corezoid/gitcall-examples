@@ -1,4 +1,4 @@
-FROM fukamachi/sbcl:2.4.7 as builder
+FROM fukamachi/sbcl:2.6.4
 
 RUN apt update -y && apt install -y libev4 gcc
 

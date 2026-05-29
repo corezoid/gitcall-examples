@@ -1,4 +1,4 @@
-FROM python:3.12-alpine as builder
+FROM python:3.14-alpine as builder
 
 WORKDIR /app
 COPY requirements.txt requirements.txt

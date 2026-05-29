@@ -1,4 +1,4 @@
-FROM golang:1.22-alpine as builder
+FROM golang:1.26-alpine as builder
 
 WORKDIR /app
 COPY go.mod ./
@@ -11,7 +11,7 @@ RUN apk add --no-cache --virtual .fetch-deps upx
 RUN upx -1 /app/gitcall-app
 
 
-FROM alpine:3.20
+FROM alpine:3.23
 COPY --from=builder /app/gitcall-app /app/gitcall-app
 
 RUN addgroup --gid 501 usercode && \

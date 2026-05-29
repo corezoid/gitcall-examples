@@ -1,4 +1,4 @@
-FROM swipl:9.2.4 as builder
+FROM swipl:10.0.2 as builder
 
 WORKDIR /app
 COPY src src

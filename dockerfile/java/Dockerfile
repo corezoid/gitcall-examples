@@ -1,5 +1,5 @@
 
-FROM amazoncorretto:21-alpine
+FROM amazoncorretto:26-alpine
 
 WORKDIR /app
 COPY gradle gradle

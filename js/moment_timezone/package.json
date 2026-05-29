@@ -4,6 +4,6 @@
   "description": "gitcall example",
   "dependencies": {
     "moment": "^2.30.1",
-    "moment-timezone": "^0.5.45"
+    "moment-timezone": "^0.6.2"
   }
 }
