@@ -11,21 +11,35 @@ dependencies {
     implementation 'com.corezoid.gitcall:runner:0.1.4'
 
     // add your dependencies here
-    // they are will be added to the resulting fat jar (usercode.jar)
+    // they will be added to the resulting fat jar (usercode.jar)
     implementation 'com.squareup.okhttp3:okhttp:4.9.0'
     implementation 'com.google.code.gson:gson:2.8.6'
 }
 
 jar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+
     from {
-        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
-        configurations.compileClasspath.collect { it.isDirectory() ? it : zipTree(it) }
+        configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) }
     }
 }
 
-task copyJarToRoot(type: Copy) {
-    from jar
-    into "../"
+/**
+ * Copy fat jar to parent directory
+ */
+tasks.register('copyJarToRoot', Copy) {
+    dependsOn(tasks.jar)
+
+    from(tasks.jar)
+    into(layout.projectDirectory.dir("../"))
+
+    // Gradle 9 strict validation: declare output explicitly
+    outputs.dir(layout.projectDirectory.dir("../"))
 }
 
-build.dependsOn copyJarToRoot
+/**
+ * Make build depend on copy task explicitly
+ */
+tasks.named('build') {
+    dependsOn(tasks.named('copyJarToRoot'))
+}
