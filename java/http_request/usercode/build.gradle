@@ -41,5 +41,18 @@ tasks.register('copyJarToRoot', Copy) {
  * Make build depend on copy task explicitly
  */
 tasks.named('build') {
-    dependsOn(tasks.named('copyJarToRoot'))
+    dependsOn('copyJarToRoot')
+}
+
+
+tasks.named('test') {
+    dependsOn('copyJarToRoot')
+}
+
+tasks.named('compileTestJava') {
+    dependsOn('copyJarToRoot')
+}
+
+tasks.named('processTestResources') {
+    dependsOn('copyJarToRoot')
 }
